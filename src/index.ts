@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { execa } from "execa";
 import inquirer from "inquirer";
 import { execSync } from "child_process";
+import { appContent } from "./template/app.js";
 
 const run = (cmd: string, cwd = process.cwd()) => {
   console.log(`\n👉 Running: ${chalk.yellow(cmd)} in ${chalk.blue(cwd)}\n`);
@@ -73,29 +74,47 @@ async function main() {
   const projectPath = path.join(process.cwd(), projectName);
 
   // Create Vite project
-  await execa("npm", ["create", "vite@latest", projectName, "--", "--template", template], {
-    stdio: "inherit",
-  });
+  await execa(
+    "npm",
+    ["create", "vite@latest", projectName, "--", "--template", template],
+    {
+      stdio: "inherit",
+    }
+  );
 
   const deps: string[] = [];
 
   /** --- CSS Setup --- */
   if (answers.css === "Tailwind") {
     console.log(chalk.blue("\n⚡ Setting up Tailwind...\n"));
-    run("npm install tailwindcss @tailwindcss/vite postcss autoprefixer", projectPath);
+    run(
+      "npm install tailwindcss @tailwindcss/vite postcss autoprefixer",
+      projectPath
+    );
 
-    const viteConfigPath = path.join(projectPath, "vite.config.ts");
+    const viteConfigPath = fs.existsSync(
+      path.join(projectPath, "vite.config.ts")
+    )
+      ? path.join(projectPath, "vite.config.ts")
+      : path.join(projectPath, "vite.config.js");
     if (fs.existsSync(viteConfigPath)) {
       let viteConfig = fs.readFileSync(viteConfigPath, "utf-8");
       if (!viteConfig.includes("@tailwindcss/vite")) {
-        viteConfig = `import tailwindcss from '@tailwindcss/vite';\n` + viteConfig;
-        viteConfig = viteConfig.replace(/plugins:\s*\[/, "plugins: [\n    tailwindcss(),");
+        viteConfig =
+          `import tailwindcss from '@tailwindcss/vite';\n` + viteConfig;
+        viteConfig = viteConfig.replace(
+          /plugins:\s*\[/,
+          "plugins: [\n    tailwindcss(),"
+        );
         fs.writeFileSync(viteConfigPath, viteConfig);
       }
     }
 
     // Add index.css
-    fs.writeFileSync(path.join(projectPath, "src", "index.css"), '@import "tailwindcss";\n');
+    fs.writeFileSync(
+      path.join(projectPath, "src", "index.css"),
+      '@import "tailwindcss";\n'
+    );
 
     // Inject CSS import in main.tsx/jsx
     const mainFile = fs.existsSync(path.join(projectPath, "src/main.jsx"))
@@ -124,7 +143,8 @@ async function main() {
   }
 
   /** --- State Management --- */
-  if (answers.state.includes("Redux")) deps.push("redux", "@reduxjs/toolkit", "react-redux");
+  if (answers.state.includes("Redux"))
+    deps.push("redux", "@reduxjs/toolkit", "react-redux");
 
   /** --- Routing --- */
   if (answers.routing) deps.push("react-router-dom");
@@ -138,7 +158,23 @@ async function main() {
     run(`npm install ${deps.join(" ")}`, projectPath);
   }
 
-  console.log(chalk.green(`\n✅ Done! cd ${projectName} && npm run dev\n`));
-}
+  // delete app.css file
+  const appCssPath = path.join(projectPath, "src", "App.css");
+  if (fs.existsSync(appCssPath)) {
+    fs.unlinkSync(appCssPath);
+  }
+
+  // inject simple App.tsx or App.jsx
+  const appFile = fs.existsSync(path.join(projectPath, "src/App.jsx"))
+    ? "src/App.jsx"
+    : "src/App.tsx";
+  const appPath = path.join(projectPath, appFile);
+  fs.writeFileSync(appPath, appContent);
+
+  console.log(chalk.green(`\n🎉 Project ${chalk.yellow(projectName)} is ready!`));
+  console.log(chalk.cyan(`👉 Next steps:`));
+  console.log(chalk.white(`   cd ${projectName}`));
+  console.log(chalk.white(`   npm run dev`));
+  }
 
 main();
