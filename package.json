@@ -27,9 +27,13 @@
     "inquirer": "^12.9.3"
   },
   "devDependencies": {
+    "@reduxjs/toolkit": "^2.8.2",
     "@types/chalk": "^0.4.31",
     "@types/inquirer": "^9.0.9",
     "@types/node": "^24.3.0",
+    "react-redux": "^9.2.0",
+    "redux": "^5.0.1",
+    "redux-persist": "^6.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
