@@ -1,7 +1,8 @@
 {
   "name": "create-quick-react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
+  "description": "A fast CLI to scaffold React apps with prebuilt features 🚀",
   "bin": {
     "create-quick-react": "dist/index.js"
   },
@@ -13,9 +14,9 @@
     "type": "git",
     "url": "git+https://github.com/umar792/create-quick-react.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["react", "cli", "boilerplate", "create-react-app"],
+  "author": "Umar792",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/umar792/create-quick-react/issues"
   },
