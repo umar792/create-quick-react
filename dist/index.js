@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-"use strict";
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -11,6 +10,7 @@ const execa_1 = require("execa");
 const inquirer_1 = __importDefault(require("inquirer"));
 const child_process_1 = require("child_process");
 const app_js_1 = require("./template/app.js");
+const main_js_1 = require("./template/main.js");
 const run = (cmd, cwd = process.cwd()) => {
     console.log(`\n👉 Running: ${chalk_1.default.yellow(cmd)} in ${chalk_1.default.blue(cwd)}\n`);
     (0, child_process_1.execSync)(cmd, { stdio: "inherit", cwd });
@@ -145,18 +145,19 @@ async function main() {
         : "src/App.tsx";
     const appPath = path_1.default.join(projectPath, appFile);
     fs_1.default.writeFileSync(appPath, app_js_1.appContent);
+
     const hasSrc = fs_1.default.existsSync(path_1.default.join(projectPath, "src"));
     const appRootPath = hasSrc
         ? path_1.default.join(projectPath, "src", "redux")
         : path_1.default.join(projectPath, "redux");
     if (answers.state.includes("Redux")) {
         if (answers.language == "JavaScript") {
-            const templateDir = path_1.default.join(process.cwd(), "src", "ReduxJs");
+            const templateDir = path_1.default.join(__dirname, "ReduxJs");
             copyFolderRecursiveSync(templateDir, appRootPath);
             console.log(`✅ Redux files copied to ${appRootPath}`);
         }
         else {
-            const templateDir = path_1.default.join(process.cwd(), "src", "reduxTs");
+            const templateDir = path_1.default.join(__dirname, "reduxTs");
             copyFolderRecursiveSync(templateDir, appRootPath);
             console.log(`✅ Redux files copied to ${appRootPath}`);
         }
@@ -167,13 +168,13 @@ async function main() {
             : path_1.default.join(projectPath, "contextApi");
         fs_1.default.mkdirSync(appRootPath, { recursive: true });
         if (answers.language == "JavaScript") {
-            const srcFile = path_1.default.join(process.cwd(), "src", "contextApi", "contextAPI.jsx");
+            const srcFile = path_1.default.join(__dirname, "contextApi", "contextAPI.jsx");
             const destFile = path_1.default.join(appRootPath, "contextAPI.jsx");
             fs_1.default.copyFileSync(srcFile, destFile);
             console.log(`✅ ContextAPI file copied to ${destFile}`);
         }
         else {
-            const srcFile = path_1.default.join(process.cwd(), "src", "contextApi", "context.tsx");
+            const srcFile = path_1.default.join(__dirname, "contextApi", "context.tsx");
             const destFile = path_1.default.join(appRootPath, "context.tsx");
             fs_1.default.copyFileSync(srcFile, destFile);
             console.log(`✅ ContextAPI file copied to ${destFile}`);
@@ -183,7 +184,7 @@ async function main() {
         fs_1.default.mkdirSync(hooksDir, { recursive: true });
         if (answers.language === "JavaScript") {
             const useAuthPath = path_1.default.join(hooksDir, "useAuth.js");
-            const usePrivateRoutePath = path_1.default.join(hooksDir, "usePrivateRoute.js");
+            const usePrivateRoutePath = path_1.default.join(hooksDir, "usePrivateRoute.jsx");
             fs_1.default.writeFileSync(useAuthPath, getUseAuthHook("js"));
             fs_1.default.writeFileSync(usePrivateRoutePath, getPrivateRouteHook("js"));
         }

@@ -7,6 +7,9 @@ import inquirer from "inquirer";
 import { execSync } from "child_process";
 import { appContent } from "./template/app.js";
 import { mainJS } from "./template/main.js";
+import { fileURLToPath } from "url";
+
+
 
 const run = (cmd: string, cwd = process.cwd()) => {
   console.log(`\n👉 Running: ${chalk.yellow(cmd)} in ${chalk.blue(cwd)}\n`);
@@ -172,7 +175,7 @@ async function main() {
   fs.writeFileSync(appPath, appContent);
 
   // inject simple main.tsx or main.jsx
-  const mainFilePath = fs.existsSync(path.join(projectPath , "src/main.jsx")) ? "src/main.jsx" : "main.tsx";
+  const mainFilePath = fs.existsSync(path.join(projectPath , "src/main.jsx")) ? "src/main.jsx" : "src/main.tsx";
   const mainPathRoute = path.join(projectPath , mainFilePath)
   fs.writeFileSync(mainPathRoute , mainJS)
 
@@ -185,12 +188,12 @@ async function main() {
   
   if (answers.state.includes("Redux")) {
     if (answers.language == "JavaScript") {
-      const templateDir = path.join(process.cwd(), "src" ,"ReduxJs");
+      const templateDir = path.join(__dirname,"ReduxJs");
 
       copyFolderRecursiveSync(templateDir, appRootPath);
       console.log(`✅ Redux files copied to ${appRootPath}`);
     } else {
-      const templateDir = path.join(process.cwd(), "src" , "reduxTs");
+      const templateDir = path.join(__dirname, "reduxTs");
 
       copyFolderRecursiveSync(templateDir, appRootPath);
       console.log(`✅ Redux files copied to ${appRootPath}`);
@@ -205,12 +208,12 @@ async function main() {
     fs.mkdirSync(appRootPath, { recursive: true });
 
     if (answers.language == "JavaScript") {
-        const srcFile = path.join(process.cwd(), "src" ,"contextApi", "contextAPI.jsx");
+        const srcFile = path.join(__dirname ,"contextApi", "contextAPI.jsx");
         const destFile = path.join(appRootPath, "contextAPI.jsx");
         fs.copyFileSync(srcFile, destFile);
         console.log(`✅ ContextAPI file copied to ${destFile}`);
     } else {
-        const srcFile = path.join(process.cwd(), "src", "contextApi", "context.tsx");
+        const srcFile = path.join(__dirname, "contextApi", "context.tsx");
         const destFile = path.join(appRootPath, "context.tsx");
         fs.copyFileSync(srcFile, destFile);
         console.log(`✅ ContextAPI file copied to ${destFile}`);

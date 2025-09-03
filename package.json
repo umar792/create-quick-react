@@ -1,6 +1,6 @@
 {
   "name": "create-quick-react",
-  "version": "1.0.1",
+  "version": "1.0.11",
   "main": "index.js",
   "description": "A fast CLI to scaffold React apps with prebuilt features 🚀",
   "bin": {
@@ -37,5 +37,10 @@
     "redux-persist": "^6.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
-  }
+  },
+    "files": [
+      "dist",
+      "src" 
+    ]
+  
 }

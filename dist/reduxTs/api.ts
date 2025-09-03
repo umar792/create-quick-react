@@ -1,22 +1,40 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.API = void 0;
-const refreshToken_1 = require("./refreshToken");
-const tokenUtils_1 = require("./utils/tokenUtils");
+
+import { refreshToken } from "./refreshToken";
+import { isTokenExpired, clearTokens, setAuthError, getAccessToken } from "./utils/tokenUtils";
+
 const BASE_API = "http://localhost:500/api/v1";
-const API = async ({ endPoint, method, body, isFormData, isToast, toast, action, dispatch, isAccount = false, isToken, isHeaders }) => {
+
+// Interface API
+interface API {
+    endPoint: string;
+    method: string;
+    body?: object;
+    isFormData?: boolean;
+    isToast?: boolean;
+    toast?: any,
+    dispatch?: any,
+    action?: any,
+    isAccount?: boolean, 
+    isToken?: boolean,
+    isHeaders?: boolean,
+}
+
+export const API = async({endPoint, method, body, isFormData, isToast, toast, action, dispatch, isAccount=false, isToken, isHeaders}: API) => {
     try {
         // Check if token refresh is needed before making the API call
         if (isToken) {
-            const accessToken = (0, tokenUtils_1.getAccessToken)();
-            if ((0, tokenUtils_1.isTokenExpired)(accessToken)) {
+            const accessToken = getAccessToken();
+            
+            if (isTokenExpired(accessToken)) {
                 console.log("Access token expired, attempting refresh");
-                const refreshSuccessful = await (0, refreshToken_1.refreshToken)(toast);
+                const refreshSuccessful = await refreshToken(toast);
+                
                 if (!refreshSuccessful) {
                     // If refresh failed and this is a protected route, return error
                     if (isToast && toast) {
                         toast.error("Session expired. Please login again.");
                     }
+                    
                     // Force logout (we might want to redirect to login here)
                     return {
                         success: false,
@@ -26,6 +44,7 @@ const API = async ({ endPoint, method, body, isFormData, isToast, toast, action,
                 }
             }
         }
+        
         // Proceed with the original API call
         const res = await fetch(`${BASE_API}${endPoint}`, {
             method: method,
@@ -37,7 +56,7 @@ const API = async ({ endPoint, method, body, isFormData, isToast, toast, action,
                         'ngrok-skip-browser-warning': 'true',
                     }),
                     ...(isToken && {
-                        "Authorization": `Bearer ${(0, tokenUtils_1.getAccessToken)()}`,
+                        "Authorization": `Bearer ${getAccessToken()}`,
                     })
                 }
             }),
@@ -45,38 +64,44 @@ const API = async ({ endPoint, method, body, isFormData, isToast, toast, action,
                 body: isFormData && body instanceof FormData ? body : JSON.stringify(body)
             })
         });
+        
         const data = await res.json();
+        
         if (res.status >= 200 && res.status < 300) {
             if (isToast) {
                 toast.success(data.message);
             }
+            
             if (action && dispatch) {
                 dispatch(action(data.data));
             }
+            
             if (isAccount) {
                 localStorage.setItem("access_token", JSON.stringify(data.data.tokens.access_token));
                 localStorage.setItem("refresh_token", JSON.stringify(data.data.tokens.refresh_token));
             }
+            
             return {
                 success: true,
                 message: data.data,
-            };
-        }
-        else {
+            }
+        } else {
             console.log("API error response:", data);
             if (isToast) {
                 toast.error(data.message);
             }
+            
             // Handle authentication errors
             if (res.status === 401) {
                 // Check if the error is related to JWT expiration
                 if (data?.message?.includes('expired')) {
                     console.log("Token expired during request, attempting refresh");
-                    const refreshSuccessful = await (0, refreshToken_1.refreshToken)(toast);
+                    const refreshSuccessful = await refreshToken(toast);
+                    
                     if (refreshSuccessful) {
                         // Retry the original request with the new token
                         console.log("Retrying original request after token refresh");
-                        return (0, exports.API)({
+                        return API({
                             endPoint,
                             method,
                             body,
@@ -89,13 +114,14 @@ const API = async ({ endPoint, method, body, isFormData, isToast, toast, action,
                             isToken,
                             isHeaders
                         });
-                    }
-                    else {
+                    } else {
                         if (isToast && toast) {
                             toast.error("Session expired. Please login again.");
                         }
+                        
                         // Set the auth error flag in localStorage
-                        (0, tokenUtils_1.setAuthError)();
+                        setAuthError();
+                        
                         return {
                             success: false,
                             message: data,
@@ -104,13 +130,14 @@ const API = async ({ endPoint, method, body, isFormData, isToast, toast, action,
                     }
                 }
             }
+            
             return {
                 success: false,
                 message: data
-            };
+            }
         }
-    }
-    catch (error) {
+        
+    } catch (error: any) {
         console.error("API Error:", error);
         if (isToast) {
             toast.error(error.message);
@@ -118,7 +145,9 @@ const API = async ({ endPoint, method, body, isFormData, isToast, toast, action,
         return {
             success: false,
             message: error
-        };
+        }
     }
-};
-exports.API = API;
+}
+
+
+
