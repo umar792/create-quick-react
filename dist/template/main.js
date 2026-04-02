@@ -1,23 +1,44 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mainJS = void 0;
-exports.mainJS = `
-  import "./index.css";
-import App from "./App.jsx";
-import { StrictMode } from "react";
-import { Provider } from "react-redux";
-import { createRoot } from "react-dom/client";
-import { reduxStore ,reduxPersister } from "../redux/store";
-import { PersistGate  } from "redux-persist/integration/react";
+exports.getMainTemplate = void 0;
+const getWrapperImports = ({ useContext, useRedux }) => {
+    const imports = [
+        'import { StrictMode } from "react";',
+        'import { createRoot } from "react-dom/client";',
+        'import App from "./App";',
+    ];
+    if (useRedux) {
+        imports.push('import { Provider } from "react-redux";');
+        imports.push('import { PersistGate } from "redux-persist/integration/react";');
+        imports.push('import { reduxPersister, reduxStore } from "./redux/store";');
+    }
+    if (useContext) {
+        imports.push('import { ThemeProvider } from "./contextApi/context";');
+    }
+    return imports.join("\n");
+};
+const wrapApp = ({ useContext, useRedux }) => {
+    let app = "<App />";
+    if (useContext) {
+        app = `<ThemeProvider>\n        ${app}\n      </ThemeProvider>`;
+    }
+    if (useRedux) {
+        app = `<Provider store={reduxStore}>\n      <PersistGate loading={null} persistor={reduxPersister}>\n        ${app}\n      </PersistGate>\n    </Provider>`;
+    }
+    return app;
+};
+const getMainTemplate = (options) => `${getWrapperImports(options)}
 
+const rootElement = document.getElementById("root");
 
-createRoot(document.getElementById("root")).render(
-  <Provider store={reduxStore}>
-  <PersistGate loading={null} persistor={reduxPersister}>
-    <StrictMode>
-      <App />
-    </StrictMode>
-  </Provider>
+if (!rootElement) {
+  throw new Error("Root element not found");
+}
+
+createRoot(rootElement).render(
+  <StrictMode>
+    ${wrapApp(options)}
+  </StrictMode>,
 );
-
 `;
+exports.getMainTemplate = getMainTemplate;

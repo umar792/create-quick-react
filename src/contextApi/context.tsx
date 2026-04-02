@@ -1,5 +1,4 @@
-// ThemeContext.tsx
-import { createContext, useState, ReactNode, useContext } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 export type Theme = "light" | "dark";
 
@@ -17,7 +16,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   return (
-    // @ts-ignore
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>

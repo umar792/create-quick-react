@@ -1,12 +1,13 @@
 {
   "name": "create-quick-react",
-  "version": "1.0.11",
-  "main": "index.js",
+  "version": "1.0.12",
+  "main": "dist/index.js",
   "description": "A fast CLI to scaffold React apps with prebuilt features 🚀",
   "bin": {
     "create-quick-react": "dist/index.js"
   },
   "scripts": {
+    "prebuild": "node scripts/clean-dist.cjs",
     "build": "tsc",
     "dev": "ts-node src/index.ts"
   },
@@ -21,7 +22,6 @@
     "url": "https://github.com/umar792/create-quick-react/issues"
   },
   "homepage": "https://github.com/umar792/create-quick-react#readme",
-  "description": "",
   "dependencies": {
     "chalk": "^5.6.0",
     "execa": "^9.6.0",
@@ -38,9 +38,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
-    "files": [
-      "dist",
-      "src" 
-    ]
-  
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ]
 }

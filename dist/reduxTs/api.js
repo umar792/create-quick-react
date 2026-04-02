@@ -1,26 +1,22 @@
-
-import { refreshToken } from "./refreshToken";
-import { isTokenExpired, clearTokens, setAuthError, getAccessToken } from "../utils/tokenUtils";
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.API = void 0;
+const refreshToken_1 = require("./refreshToken");
+const tokenUtils_1 = require("./utils/tokenUtils");
 const BASE_API = "http://localhost:500/api/v1";
-
-
-export const API = async({endPoint, method, body, isFormData, isToast, toast, action, dispatch, isAccount=false, isToken, isHeaders}) => {
+const API = async ({ endPoint, method, body, isFormData, isToast, toast, action, dispatch, isAccount = false, isToken, isHeaders }) => {
     try {
         // Check if token refresh is needed before making the API call
         if (isToken) {
-            const accessToken = getAccessToken();
-            
-            if (isTokenExpired(accessToken)) {
+            const accessToken = (0, tokenUtils_1.getAccessToken)();
+            if ((0, tokenUtils_1.isTokenExpired)(accessToken)) {
                 console.log("Access token expired, attempting refresh");
-                const refreshSuccessful = await refreshToken(toast);
-                
+                const refreshSuccessful = await (0, refreshToken_1.refreshToken)(toast);
                 if (!refreshSuccessful) {
                     // If refresh failed and this is a protected route, return error
                     if (isToast && toast) {
                         toast.error("Session expired. Please login again.");
                     }
-                    
                     // Force logout (we might want to redirect to login here)
                     return {
                         success: false,
@@ -30,7 +26,6 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
                 }
             }
         }
-        
         // Proceed with the original API call
         const res = await fetch(`${BASE_API}${endPoint}`, {
             method: method,
@@ -42,7 +37,7 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
                         'ngrok-skip-browser-warning': 'true',
                     }),
                     ...(isToken && {
-                        "Authorization": `Bearer ${getAccessToken()}`,
+                        "Authorization": `Bearer ${(0, tokenUtils_1.getAccessToken)()}`,
                     })
                 }
             }),
@@ -50,44 +45,38 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
                 body: isFormData && body instanceof FormData ? body : JSON.stringify(body)
             })
         });
-        
         const data = await res.json();
-        
         if (res.status >= 200 && res.status < 300) {
             if (isToast) {
                 toast.success(data.message);
             }
-            
             if (action && dispatch) {
                 dispatch(action(data.data));
             }
-            
             if (isAccount) {
                 localStorage.setItem("access_token", JSON.stringify(data.data.tokens.access_token));
                 localStorage.setItem("refresh_token", JSON.stringify(data.data.tokens.refresh_token));
             }
-            
             return {
                 success: true,
                 message: data.data,
-            }
-        } else {
+            };
+        }
+        else {
             console.log("API error response:", data);
             if (isToast) {
                 toast.error(data.message);
             }
-            
             // Handle authentication errors
             if (res.status === 401) {
                 // Check if the error is related to JWT expiration
                 if (data?.message?.includes('expired')) {
                     console.log("Token expired during request, attempting refresh");
-                    const refreshSuccessful = await refreshToken(toast);
-                    
+                    const refreshSuccessful = await (0, refreshToken_1.refreshToken)(toast);
                     if (refreshSuccessful) {
                         // Retry the original request with the new token
                         console.log("Retrying original request after token refresh");
-                        return API({
+                        return (0, exports.API)({
                             endPoint,
                             method,
                             body,
@@ -100,14 +89,13 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
                             isToken,
                             isHeaders
                         });
-                    } else {
+                    }
+                    else {
                         if (isToast && toast) {
                             toast.error("Session expired. Please login again.");
                         }
-                        
                         // Set the auth error flag in localStorage
-                        setAuthError();
-                        
+                        (0, tokenUtils_1.setAuthError)();
                         return {
                             success: false,
                             message: data,
@@ -116,14 +104,13 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
                     }
                 }
             }
-            
             return {
                 success: false,
                 message: data
-            }
+            };
         }
-        
-    } catch (error) {
+    }
+    catch (error) {
         console.error("API Error:", error);
         if (isToast) {
             toast.error(error.message);
@@ -131,9 +118,7 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
         return {
             success: false,
             message: error
-        }
+        };
     }
-}
-
-
-
+};
+exports.API = API;

@@ -1,6 +1,6 @@
 
 import { refreshToken } from "./refreshToken";
-import { isTokenExpired, clearTokens, setAuthError, getAccessToken } from "../utils/tokenUtils";
+import { getAccessToken, isTokenExpired, setAuthError } from "./utils/tokenUtils";
 
 const BASE_API = "http://localhost:500/api/v1";
 
@@ -134,6 +134,5 @@ export const API = async({endPoint, method, body, isFormData, isToast, toast, ac
         }
     }
 }
-
 
 
